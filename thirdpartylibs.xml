@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<libraries>
+  <library>
+    <location>vendor-oauth2/league/oauth2-server</location>
+    <name>league/oauth2-server</name>
+    <description>OAuth 2.0 authorization server library</description>
+    <version>9.4.1</version>
+    <license>MIT</license>
+    <repository>https://github.com/thephpleague/oauth2-server</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/league/event</location>
+    <name>league/event</name>
+    <description>Event dispatching (oauth2-server dependency)</description>
+    <version>3.0.3</version>
+    <license>MIT</license>
+    <repository>https://github.com/thephpleague/event</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/league/uri</location>
+    <name>league/uri</name>
+    <description>URI manipulation (oauth2-server dependency)</description>
+    <version>7.8.1</version>
+    <license>MIT</license>
+    <repository>https://github.com/thephpleague/uri</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/league/uri-interfaces</location>
+    <name>league/uri-interfaces</name>
+    <description>URI contracts (oauth2-server dependency)</description>
+    <version>7.8.1</version>
+    <license>MIT</license>
+    <repository>https://github.com/thephpleague/uri-interfaces</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/lcobucci/jwt</location>
+    <name>lcobucci/jwt</name>
+    <description>JWT handling (oauth2-server dependency)</description>
+    <version>5.6.0</version>
+    <license>BSD-3-Clause</license>
+    <repository>https://github.com/lcobucci/jwt</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/defuse/php-encryption</location>
+    <name>defuse/php-encryption</name>
+    <description>Symmetric encryption (oauth2-server dependency)</description>
+    <version>2.4.0</version>
+    <license>MIT</license>
+    <repository>https://github.com/defuse/php-encryption</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/paragonie/random_compat</location>
+    <name>paragonie/random_compat</name>
+    <description>CSPRNG polyfill (php-encryption dependency)</description>
+    <version>9.99.100</version>
+    <license>MIT</license>
+    <repository>https://github.com/paragonie/random_compat</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/psr/clock</location>
+    <name>psr/clock</name>
+    <description>PSR-20 clock interface</description>
+    <version>1.0.0</version>
+    <license>MIT</license>
+    <repository>https://github.com/php-fig/clock</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/psr/event-dispatcher</location>
+    <name>psr/event-dispatcher</name>
+    <description>PSR-14 event dispatcher interface</description>
+    <version>1.0.0</version>
+    <license>MIT</license>
+    <repository>https://github.com/php-fig/event-dispatcher</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/psr/http-factory</location>
+    <name>psr/http-factory</name>
+    <description>PSR-17 HTTP factory interface</description>
+    <version>1.1.0</version>
+    <license>MIT</license>
+    <repository>https://github.com/php-fig/http-factory</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/psr/http-message</location>
+    <name>psr/http-message</name>
+    <description>PSR-7 HTTP message interface</description>
+    <version>2.0</version>
+    <license>MIT</license>
+    <repository>https://github.com/php-fig/http-message</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/psr/http-server-handler</location>
+    <name>psr/http-server-handler</name>
+    <description>PSR-15 handler interface</description>
+    <version>1.0.2</version>
+    <license>MIT</license>
+    <repository>https://github.com/php-fig/http-server-handler</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/psr/http-server-middleware</location>
+    <name>psr/http-server-middleware</name>
+    <description>PSR-15 middleware interface</description>
+    <version>1.0.2</version>
+    <license>MIT</license>
+    <repository>https://github.com/php-fig/http-server-middleware</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/composer</location>
+    <name>Composer autoloader (generated)</name>
+    <description>Generated class loader for the vendored libraries</description>
+    <version>2.x</version>
+    <license>MIT</license>
+    <repository>https://github.com/composer/composer</repository>
+  </library>
+  <library>
+    <location>vendor-oauth2/autoload.php</location>
+    <name>Composer autoloader entry point (generated)</name>
+    <description>Generated entry point for the vendored libraries</description>
+    <version>2.x</version>
+    <license>MIT</license>
+    <repository>https://github.com/composer/composer</repository>
+  </library>
+</libraries>

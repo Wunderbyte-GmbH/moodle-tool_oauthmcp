@@ -1,0 +1,23 @@
+# tool_oauthmcp: webroot aliases for OAuth discovery (RFC 8414 / RFC 9728).
+#
+# Clients derive the authorization-server metadata URL from the issuer
+# (= $CFG->wwwroot) by inserting /.well-known/ at the HOST ROOT. These
+# rewrites therefore belong to the (virtual) host serving the domain,
+# not to the Moodle directory.
+#
+# Also included: the Authorization header pass-through needed when PHP
+# runs via proxy_fcgi/PHP-FPM (Apache strips the header by default).
+#
+# Adjust /moodle when the site lives in a subdirectory; drop the suffix
+# when Moodle is at the domain root.
+
+SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=$1
+
+# Moodle at the domain root:
+RewriteEngine On
+RewriteRule ^/\.well-known/oauth-authorization-server/?$ /admin/tool/oauthmcp/oauth/asmeta.php [PT,L]
+RewriteRule ^/\.well-known/oauth-protected-resource/?$ /admin/tool/oauthmcp/oauth/prm.php [PT,L]
+
+# Moodle in a subdirectory (issuer https://host/moodle):
+# RewriteRule ^/\.well-known/oauth-authorization-server/moodle/?$ /moodle/admin/tool/oauthmcp/oauth/asmeta.php [PT,L]
+# RewriteRule ^/\.well-known/oauth-protected-resource/moodle/?$ /moodle/admin/tool/oauthmcp/oauth/prm.php [PT,L]

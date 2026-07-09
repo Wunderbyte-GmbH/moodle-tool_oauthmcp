@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="admin/tool/oauthmcp/db" VERSION="20260708" COMMENT="XMLDB file for Moodle admin/tool/oauthmcp"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="tool_oauthmcp_session" COMMENT="MCP protocol sessions (Mcp-Session-Id header)">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="sid" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Random session identifier issued on initialize"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="authmode" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" COMMENT="wstoken or oauth"/>
+        <FIELD NAME="tokenid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Access token row the session is bound to (oauth mode only)"/>
+        <FIELD NAME="protocolversion" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" COMMENT="Negotiated MCP protocol version"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="lastseen" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="sid" UNIQUE="true" FIELDS="sid"/>
+        <INDEX NAME="lastseen" UNIQUE="false" FIELDS="lastseen"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="tool_oauthmcp_tool" COMMENT="Per-tool governance: admin enable/disable and read-only classification">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="source" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" COMMENT="Tool source id: extfunc or a hook provider component"/>
+        <FIELD NAME="toolname" TYPE="char" LENGTH="128" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="isreadonly" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Admin classification for extfunc tools: read-only tools serve the mcp:read scope"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="sourcetool" UNIQUE="true" FIELDS="source, toolname"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="tool_oauthmcp_client" COMMENT="OAuth clients (dynamic and manual registrations)">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="clientid" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Public client identifier"/>
+        <FIELD NAME="secrethash" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="password_hash of the client secret; null for public clients"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="redirecturis" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="JSON array of exact redirect URIs"/>
+        <FIELD NAME="scopes" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Space-separated scopes the client may request"/>
+        <FIELD NAME="authmethod" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="none" SEQUENCE="false" COMMENT="none, client_secret_basic or client_secret_post"/>
+        <FIELD NAME="dcr" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when registered via RFC 7591"/>
+        <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="createdby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="registrationip" TYPE="char" LENGTH="45" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="clientid" UNIQUE="true" FIELDS="clientid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="tool_oauthmcp_authcode" COMMENT="Authorization code single-use tracking">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="identifier" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="clientdbid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="expires" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="revoked" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="identifier" UNIQUE="true" FIELDS="identifier"/>
+        <INDEX NAME="expires" UNIQUE="false" FIELDS="expires"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="tool_oauthmcp_token" COMMENT="Opaque OAuth access tokens (hash-stored)">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="tokenhash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="sha256 of the opaque bearer string"/>
+        <FIELD NAME="identifier" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Library token identifier"/>
+        <FIELD NAME="clientdbid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="scopes" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Space-separated granted scopes"/>
+        <FIELD NAME="resourceuri" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="RFC 8707 resource the token is bound to"/>
+        <FIELD NAME="authcode" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Auth code identifier the token was issued from (replay revocation)"/>
+        <FIELD NAME="expires" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="revoked" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="lastused" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="tokenhash" UNIQUE="true" FIELDS="tokenhash"/>
+        <INDEX NAME="identifier" UNIQUE="true" FIELDS="identifier"/>
+        <INDEX NAME="expires" UNIQUE="false" FIELDS="expires"/>
+        <INDEX NAME="authcode" UNIQUE="false" FIELDS="authcode"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="tool_oauthmcp_refresh" COMMENT="Refresh tokens with rotation families for reuse detection">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="identifier" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="accesstokenid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Row id in tool_oauthmcp_token"/>
+        <FIELD NAME="familyid" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Constant across rotations of one grant"/>
+        <FIELD NAME="clientdbid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="expires" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="revoked" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="identifier" UNIQUE="true" FIELDS="identifier"/>
+        <INDEX NAME="familyid" UNIQUE="false" FIELDS="familyid"/>
+        <INDEX NAME="expires" UNIQUE="false" FIELDS="expires"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="tool_oauthmcp_consent" COMMENT="Per user and client consent decisions">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="clientdbid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="scopes" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Space-separated scopes the user consented to"/>
+        <FIELD NAME="remembered" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userclient" UNIQUE="true" FIELDS="userid, clientdbid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

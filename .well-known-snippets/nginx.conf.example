@@ -1,0 +1,21 @@
+# tool_oauthmcp: webroot aliases for OAuth discovery (RFC 8414 / RFC 9728).
+#
+# Place inside the server {} block of the host serving the Moodle domain.
+# Adjust /moodle when the site lives in a subdirectory; drop the suffix
+# when Moodle is at the domain root.
+
+# Moodle at the domain root:
+location = /.well-known/oauth-authorization-server {
+    rewrite ^ /admin/tool/oauthmcp/oauth/asmeta.php last;
+}
+location = /.well-known/oauth-protected-resource {
+    rewrite ^ /admin/tool/oauthmcp/oauth/prm.php last;
+}
+
+# Moodle in a subdirectory (issuer https://host/moodle):
+# location = /.well-known/oauth-authorization-server/moodle {
+#     rewrite ^ /moodle/admin/tool/oauthmcp/oauth/asmeta.php last;
+# }
+# location = /.well-known/oauth-protected-resource/moodle {
+#     rewrite ^ /moodle/admin/tool/oauthmcp/oauth/prm.php last;
+# }
