@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tool_oauthmcp';
-$plugin->version = 2026071001;
+$plugin->version = 2026081100;
 $plugin->requires = 2024100700; // Moodle 4.5.
-$plugin->release = '1.0.1';
+$plugin->release = '1.0.2';
 $plugin->maturity = MATURITY_STABLE;
