@@ -124,7 +124,7 @@ class behat_tool_oauthmcp extends behat_base {
             'state' => 'behatstate',
             'code_challenge' => $challenge,
             'code_challenge_method' => 'S256',
-        ]);
+        ], '', '&');
         $this->execute(
             'behat_general::i_visit',
             ['/admin/tool/oauthmcp/oauth/authorize.php?' . $params]

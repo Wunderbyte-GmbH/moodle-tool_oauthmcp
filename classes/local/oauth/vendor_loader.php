@@ -43,7 +43,32 @@ class vendor_loader {
         static $loaded = false;
         if (!$loaded) {
             require_once(__DIR__ . '/../../../vendor-oauth2/autoload.php');
+            self::fix_arg_separator();
             $loaded = true;
         }
+    }
+
+    /**
+     * Undo Moodle's global HTML-oriented argument separator for this request.
+     *
+     * Moodle sets arg_separator.output to '&amp;' (lib/setup.php) so that URLs printed into
+     * HTML are well-formed. PHP's documented default is '&', and league/oauth2-server builds
+     * redirect URIs with a bare http_build_query() in two places:
+     *
+     *   Grant/AbstractAuthorizeGrant::makeRedirectUri()
+     *   Exception/OAuthServerException::generateHttpResponse()
+     *
+     * Under Moodle's default those emit "?code=X&amp;state=Y" in an HTTP Location header,
+     * where '&amp;' is never valid. The client then reads the parameter as "amp;state",
+     * fails its state check and abandons the flow before reaching the token endpoint.
+     *
+     * Patching the vendored library would be lost on the next update, so the correction lives
+     * here instead: every code path that touches the library comes through this loader. Our own
+     * http_build_query() calls additionally pass '&' explicitly and do not depend on this.
+     *
+     * @return void
+     */
+    private static function fix_arg_separator(): void {
+        ini_set('arg_separator.output', '&');
     }
 }

@@ -87,7 +87,7 @@ function tool_oauthmcp_error_redirect(string $redirecturi, string $error, string
         $params['state'] = $state;
     }
     $separator = (strpos($redirecturi, '?') === false) ? '?' : '&';
-    redirect($redirecturi . $separator . http_build_query($params));
+    redirect($redirecturi . $separator . http_build_query($params, '', '&'));
 }
 
 $ispost = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';
@@ -105,7 +105,10 @@ if ($ispost) {
 } else {
     $psrrequest = \GuzzleHttp\Psr7\ServerRequest::fromGlobals();
     $queryparams = $psrrequest->getQueryParams();
-    $authparams = base64_encode(http_build_query($queryparams));
+    // Force '&' as the separator: Moodle sets arg_separator.output to '&amp;'
+    // (lib/setup.php), which would otherwise be baked into the round-tripped
+    // query string and make parse_str() yield "amp;client_id" on the POST.
+    $authparams = base64_encode(http_build_query($queryparams, '', '&'));
 }
 
 $server = server_factory::authorization_server();
