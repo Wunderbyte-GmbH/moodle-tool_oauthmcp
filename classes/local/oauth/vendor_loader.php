@@ -43,9 +43,11 @@ class vendor_loader {
         static $loaded = false;
         if (!$loaded) {
             require_once(__DIR__ . '/../../../vendor-oauth2/autoload.php');
-            self::fix_arg_separator();
             $loaded = true;
         }
+        // Outside the once-guard on purpose: re-asserting an ini value is free, and callers
+        // rely on load() guaranteeing the separator, not only the first caller in a request.
+        self::fix_arg_separator();
     }
 
     /**
