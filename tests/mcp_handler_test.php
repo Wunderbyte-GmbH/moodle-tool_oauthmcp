@@ -167,6 +167,61 @@ final class mcp_handler_test extends \advanced_testcase {
     }
 
     /**
+     * A WS token in the X-Moodle-Token fallback header authenticates like a bearer.
+     *
+     * The fallback exists for hosting that strips the Authorization header before PHP
+     * (FastCGI/CGI) — the whole point is that it works with no server configuration.
+     *
+     * @return void
+     */
+    public function test_token_header_fallback(): void {
+        [, $token] = $this->setup_environment();
+
+        $response = (new mcp_http_handler())->handle($this->request(
+            [mcp_http_handler::TOKEN_HEADER => $token],
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize', 'params' => [
+                'protocolVersion' => '2025-06-18',
+                'capabilities' => [],
+                'clientInfo' => ['name' => 'phpunit', 'version' => '1'],
+            ]]
+        ));
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertNotEmpty($response->getHeaderLine('Mcp-Session-Id'));
+    }
+
+    /**
+     * The fallback header is wstoken-only: with authmode oauth it must not authenticate.
+     *
+     * @return void
+     */
+    public function test_token_header_fallback_disabled_in_oauth_mode(): void {
+        [, $token] = $this->setup_environment();
+        set_config('authmode', 'oauth', 'tool_oauthmcp');
+
+        $response = (new mcp_http_handler())->handle($this->request(
+            [mcp_http_handler::TOKEN_HEADER => $token],
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize', 'params' => []]
+        ));
+        $this->assertSame(401, $response->getStatusCode());
+    }
+
+    /**
+     * A present Authorization header wins: a garbage bearer is not rescued by a valid
+     * fallback header, so a client cannot half-authenticate with mixed credentials.
+     *
+     * @return void
+     */
+    public function test_token_header_ignored_when_authorization_present(): void {
+        [, $token] = $this->setup_environment();
+
+        $response = (new mcp_http_handler())->handle($this->request(
+            ['Authorization' => 'Bearer ' . str_repeat('0', 32), mcp_http_handler::TOKEN_HEADER => $token],
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize', 'params' => []]
+        ));
+        $this->assertSame(401, $response->getStatusCode());
+    }
+
+    /**
      * A valid WS token without the connect capability is rejected.
      *
      * @return void

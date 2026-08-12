@@ -50,6 +50,13 @@ class mcp_http_handler {
     /** @var string The protocol version header (2025-06-18). */
     private const VERSION_HEADER = 'MCP-Protocol-Version';
 
+    /**
+     * @var string Fallback header carrying a web-service token for hosting that strips the
+     * Authorization header before it reaches PHP (FastCGI/CGI). Custom X- headers survive
+     * every webserver untouched, so this needs no server configuration at all.
+     */
+    public const TOKEN_HEADER = 'X-Moodle-Token';
+
     /** @var session_manager */
     private $sessions;
 
@@ -96,10 +103,12 @@ class mcp_http_handler {
 
         $auth = $this->authenticate($request);
         if ($auth === null) {
-            // A presented-but-rejected bearer is a security-relevant event
-            // (brute force, stale token); a bare probe without any bearer is
-            // not worth logging.
-            if (preg_match('/^Bearer\s+\S/i', trim($request->getHeaderLine('Authorization')))) {
+            // A presented-but-rejected credential is a security-relevant event
+            // (brute force, stale token); a bare probe without any credential
+            // is not worth logging.
+            $presented = preg_match('/^Bearer\s+\S/i', trim($request->getHeaderLine('Authorization')))
+                || trim($request->getHeaderLine(self::TOKEN_HEADER)) !== '';
+            if ($presented) {
                 \tool_oauthmcp\event\auth_failed::create([
                     'context' => \core\context\system::instance(),
                     'other' => ['ip' => getremoteaddr()],
@@ -271,16 +280,25 @@ class mcp_http_handler {
      */
     private function authenticate(ServerRequestInterface $request): ?auth_result {
         $header = trim($request->getHeaderLine('Authorization'));
-        if (!preg_match('/^Bearer\s+(\S+)$/i', $header, $matches)) {
+        if (preg_match('/^Bearer\s+(\S+)$/i', $header, $matches)) {
+            $bearer = $matches[1];
+            foreach ($this->authenticators() as $authenticator) {
+                $result = $authenticator->authenticate($bearer);
+                if ($result !== null) {
+                    return $result;
+                }
+            }
             return null;
         }
-        $bearer = $matches[1];
 
-        foreach ($this->authenticators() as $authenticator) {
-            $result = $authenticator->authenticate($bearer);
-            if ($result !== null) {
-                return $result;
-            }
+        // No Authorization header arrived. Accept a web-service token in the fallback header,
+        // deliberately wstoken-only: OAuth access tokens are protocol-bound to the Authorization
+        // header (RFC 6750) and OAuth clients cannot be told to send custom headers anyway. The
+        // token passes the exact same validation chain, so nothing is weaker — only the envelope
+        // differs.
+        $alt = trim($request->getHeaderLine(self::TOKEN_HEADER));
+        if ($alt !== '' && $this->wstoken_enabled()) {
+            return (new wstoken_authenticator())->authenticate($alt);
         }
         return null;
     }
@@ -296,10 +314,20 @@ class mcp_http_handler {
         if ($mode === 'oauth' || $mode === 'both' || $mode === '') {
             $chain[] = new \tool_oauthmcp\local\auth\oauth_authenticator();
         }
-        if ($mode === 'wstoken' || $mode === 'both' || $mode === '') {
+        if ($this->wstoken_enabled()) {
             $chain[] = new wstoken_authenticator();
         }
         return $chain;
+    }
+
+    /**
+     * Whether the authmode setting allows web-service token authentication.
+     *
+     * @return bool
+     */
+    private function wstoken_enabled(): bool {
+        $mode = (string)get_config('tool_oauthmcp', 'authmode');
+        return $mode === 'wstoken' || $mode === 'both' || $mode === '';
     }
 
     /**
