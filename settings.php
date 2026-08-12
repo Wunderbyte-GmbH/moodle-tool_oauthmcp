@@ -183,4 +183,10 @@ if ($hassiteconfig) {
         get_string('diagnostics', 'tool_oauthmcp'),
         new moodle_url('/admin/tool/oauthmcp/diagnostics.php')
     ));
+
+    $ADMIN->add('tooloauthmcp', new admin_externalpage(
+        'tool_oauthmcp_serversetup',
+        get_string('serversetup', 'tool_oauthmcp'),
+        new moodle_url('/admin/tool/oauthmcp/serversetup.php')
+    ));
 }
