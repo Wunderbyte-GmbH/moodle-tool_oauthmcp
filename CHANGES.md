@@ -1,5 +1,12 @@
 # Changes
 
+## 1.1.1 (2026091800)
+
+- Bugfix: the four cache definitions in `db/caches.php` (`sessions`, `toollist`,
+  `ratelimit`, `oauthtokens`) had no `cachedef_*` language strings and showed up as
+  `[[cachedef_...]]` on the cache configuration page. Added to both shipped language
+  packs (Wunderbyte-GmbH/Wunderbyte-GmbH#2432).
+
 ## 1.0.1 (2026070806)
 
 Initial public release. A Moodle admin tool that turns the site into a remote
